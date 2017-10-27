@@ -155,12 +155,23 @@ public class Node
         return result;
     }
 
-    public bool ContainsVertex(int v)
-    {
-        return _blossom.ContainsVertex(v);
-    }
+    public bool ContainsVertex(int v) => _blossom.ContainsVertex(v);
 
     public HashSet<int> Vertices => _blossom.Vertices;
+
+    public bool ContainsVertexInSubtree(int v)
+    {
+        if (ContainsVertex(v))
+            return true;
+
+        foreach (Node i in _children.Values)
+        {
+            if (i.ContainsVertexInSubtree(v))
+                return true;
+        }
+
+        return false;
+    }
 
     public HashSet<int> VerticesInSubtree
     {
@@ -182,18 +193,13 @@ public class Node
 
 public abstract class AbstractTree
 {
-    public bool ContainsVertex(int v) { return Vertices.Contains(v); }
+    public virtual bool ContainsVertex(int v) { return Vertices.Contains(v); }
 
     public abstract HashSet<int> Vertices { get; }
 
     public override string ToString()
     {
-        string result = "V: ";
-        foreach (int i in Vertices)
-        {
-            result += i.ToString() + " ";
-        }
-        return result;
+        return "V: " + String.Join(" ", Vertices);
     }
 }
 
@@ -222,7 +228,7 @@ public class Tree : AbstractTree
             foreach (Edge e in root._blossom.Boundary)
             {
                 int other_end = root.Vertices.Contains(e.V) ? e.U : e.V;
-                AbstractTree other_tree = forrest.Find(tree => tree.Vertices.Contains(other_end));
+                AbstractTree other_tree = forrest.Find(tree => tree.ContainsVertex(other_end));
                 
                 if (fullEdges[e] == 0)
                 {
@@ -315,7 +321,7 @@ public class Tree : AbstractTree
         {
             foreach (Node n in node._children.Values)
             {
-                if (n.VerticesInSubtree.Contains(v))
+                if (n.ContainsVertexInSubtree(v))
                 {
                     node = n;
                     break;
@@ -336,7 +342,7 @@ public class Tree : AbstractTree
         {
             foreach (var t in node._children)
             {
-                if (t.Value.VerticesInSubtree.Contains(w))
+                if (t.Value.ContainsVertexInSubtree(w))
                 {
                     nextNode = t.Value;
                     edge = t.Key;
@@ -393,7 +399,7 @@ public class Tree : AbstractTree
     {
         int v = b.Vertices.First();
         Node result = a;
-        while (!result.VerticesInSubtree.Contains(v))
+        while (!result.ContainsVertexInSubtree(v))
         {
             result = result._parent;
         }
@@ -412,8 +418,8 @@ public class Tree : AbstractTree
         List<Edge> edges = new List<Edge>();
 
         Node lca = LCA(a, b);
-        Debug.Assert(lca.VerticesInSubtree.Contains(vertexInA));
-        Debug.Assert(lca.VerticesInSubtree.Contains(vertexInB));
+        Debug.Assert(lca.ContainsVertexInSubtree(vertexInA));
+        Debug.Assert(lca.ContainsVertexInSubtree(vertexInB));
 
         // path from lca to a
         Node cur = lca;
@@ -423,7 +429,7 @@ public class Tree : AbstractTree
             blossoms.Add(cur._blossom);
             foreach (var i in cur._children)
             {
-                if (i.Value.VerticesInSubtree.Contains(vertexInA))
+                if (i.Value.ContainsVertexInSubtree(vertexInA))
                 {
                     edges.Add(i.Key);
                     cur = i.Value;
@@ -473,7 +479,7 @@ public class Tree : AbstractTree
         // remove children from lca to a/b
         foreach (var i in lca._children)
         {
-            if (i.Value.VerticesInSubtree.Contains(vertexInA) || i.Value.VerticesInSubtree.Contains(vertexInB))
+            if (i.Value.ContainsVertexInSubtree(vertexInA) || i.Value.ContainsVertexInSubtree(vertexInB))
             {
                 newChildren.Remove(i.Key);
             }
@@ -520,6 +526,8 @@ public class Tree : AbstractTree
     }
 
     public override HashSet<int> Vertices { get { return _root.VerticesInSubtree; } }
+
+    public override bool ContainsVertex(int v) => _root.ContainsVertexInSubtree(v);
 }
 
 public class Barbell : AbstractTree

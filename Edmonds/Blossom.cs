@@ -19,10 +19,7 @@ public abstract class Blossom
         }
     }
 
-    public bool ContainsVertex(int v)
-    {
-        return Vertices.Contains(v);
-    }
+    public bool ContainsVertex(int v) => Vertices.Contains(v);
 
     public HashSet<Edge> Boundary { get; } = new HashSet<Edge>();
 
@@ -38,7 +35,7 @@ public class CompositeBlossom : Blossom
     public CompositeBlossom(List<Blossom> blossoms, List<Edge> edges, CompleteGraph graph, CompleteGraph partialMatching)
     {
         Debug.Assert(blossoms.Count == edges.Count);
-        //Debug.Assert(blossoms.Count % 2 == 1);
+        Debug.Assert(blossoms.Count % 2 == 1);
 
         // edges[0] between blossoms[0], blossoms[1]... 
         SubBlossoms = blossoms;
