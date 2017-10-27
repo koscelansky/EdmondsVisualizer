@@ -122,13 +122,7 @@ public class EdmondsVisualizer
         DrawBlossom(n._blossom);
     }
 
-    public IEnumerable<Edge> Edges
-    {
-        get
-        {
-            return _matching.Edges;
-        }
-    }
+    public IEnumerable<Edge> Edges => _matching.Edges;
 
     public bool NextIter()
     {
@@ -154,7 +148,7 @@ public class EdmondsVisualizer
 
         foreach (Point p in Points)
         {
-            _graphics.DrawEllipse(new Pen(Color.Black, 3), p.X - 3, p.Y - 3, 5, 5);
+            _graphics.DrawEllipse(new Pen(Color.Black, 3), p.X - 2.5f, p.Y - 2.5f, 5f, 5f);
         }
 
         for (int i = 0; i < partialMatching.Order; i++)
@@ -185,7 +179,7 @@ public class EdmondsVisualizer
 
     private static Color PickColor(int level)
     {
-        double h = 1 / (level / 4f + 1);
+        double h = 1 / (level / 2f + 1);
 
         Hsl hsl = new Hsl { H = h * 360, L = 80, S = 100 };
         Rgb rgb = hsl.To<Rgb>();

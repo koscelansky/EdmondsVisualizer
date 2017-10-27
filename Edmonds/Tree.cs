@@ -50,7 +50,7 @@ public class Node
 
         snd.Level = fst.Level + 1;
         snd._parent = fst;
-        snd._tree = this._tree;
+        snd._tree = _tree;
         snd._children.Clear();
 
         fst._children.Add(barbell.Edge, snd);
@@ -310,7 +310,7 @@ public class Tree : AbstractTree
             return null;
         }
 
-        Node node = this._root;
+        Node node = _root;
         while (!node.ContainsVertex(v))
         {
             foreach (Node n in node._children.Values)
