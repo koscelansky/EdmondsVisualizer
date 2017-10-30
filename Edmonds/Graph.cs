@@ -13,15 +13,8 @@ public class Edge
         if (u == v)
             throw new IndexOutOfRangeException("Loops are not supported");
 
-        if (u < v)
-        {
-            int temp = u;
-            u = v;
-            v = temp;
-        }
-
-        U = u;
-        V = v;
+        U = Math.Max(u, v);
+        V = Math.Min(u, v);
     }
 
     public override bool Equals(Object obj)
@@ -31,13 +24,10 @@ public class Edge
 
     public override int GetHashCode()
     {
-        return ((this.U << 16) | (this.V & 0xffff));
+        return ((U << 16) | (V & 0xffff));
     }
 
-    public override string ToString()
-    {
-        return "(" + U.ToString() + ", " + V.ToString() + ")";
-    }
+    public override string ToString() => $"({U}, {V})";
 
     public int OtherEnd(int v)
     {

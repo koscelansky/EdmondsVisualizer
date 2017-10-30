@@ -159,18 +159,12 @@ public class VertexBlossom : Blossom
         }
     }
 
-    public override string ToString()
-    {
-        return "T: " + Thickness.ToString() + " V: " + Stem.ToString();
-    }
+    public override string ToString() => $"T: {Thickness} V: {Stem}";
 
     public override HashSet<Edge> FindAlternatingPath(int v, CompleteGraph M)
     {
         return new HashSet<Edge>();
     }
 
-    public override void UpdateStem(CompleteGraph M)
-    {
-        return;
-    }
+    public override void UpdateStem(CompleteGraph partialMatching) { }
 }
