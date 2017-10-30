@@ -71,8 +71,16 @@ namespace Edmonds
             {
                 if ((_points.Count > 0) && (_points.Count % 2 == 0))
                 {
+                    MainTextBox.AppendText($"Graph created, n =  {_points.Count}.\n");
+
+                    if (TrivialAlgorithm.Checked)
+                    {
+                        var trivialMatching = new TrivialMatching(new CompleteGraph(_points));
+                        MainTextBox.AppendText("Matching computed by trivial algrithm:\n");
+                        MainTextBox.AppendText(String.Join("", trivialMatching.Matching().OrderBy(x => x)) + "\n");
+                    }
+
                     _v = new EdmondsVisualizer(MainPictureBox.Width, MainPictureBox.Height, _points);
-                    MainTextBox.AppendText("Graph created, n = " + _points.Count.ToString() + "\n");
                 }
                 else
                 {

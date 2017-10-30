@@ -41,6 +41,7 @@
             this.Reset = new System.Windows.Forms.Button();
             this.ControlPanel = new System.Windows.Forms.Panel();
             this.ShowVertces = new System.Windows.Forms.CheckBox();
+            this.TrivialAlgorithm = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.MainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.Pause)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.Size)).BeginInit();
@@ -187,6 +188,7 @@
             // ControlPanel
             // 
             this.ControlPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ControlPanel.Controls.Add(this.TrivialAlgorithm);
             this.ControlPanel.Controls.Add(this.ShowVertces);
             this.ControlPanel.Controls.Add(this.Reset);
             this.ControlPanel.Controls.Add(this.Go);
@@ -209,6 +211,16 @@
             this.ShowVertces.TabIndex = 11;
             this.ShowVertces.Text = "Show vertices";
             this.ShowVertces.UseVisualStyleBackColor = true;
+            // 
+            // TrivialAlgorithm
+            // 
+            this.TrivialAlgorithm.AutoSize = true;
+            this.TrivialAlgorithm.Location = new System.Drawing.Point(130, 73);
+            this.TrivialAlgorithm.Name = "TrivialAlgorithm";
+            this.TrivialAlgorithm.Size = new System.Drawing.Size(174, 21);
+            this.TrivialAlgorithm.TabIndex = 12;
+            this.TrivialAlgorithm.Text = "Include trivial algorithm";
+            this.TrivialAlgorithm.UseVisualStyleBackColor = true;
             // 
             // Visualizer
             // 
@@ -245,5 +257,6 @@
         private System.Windows.Forms.Button Reset;
         private System.Windows.Forms.Panel ControlPanel;
         private System.Windows.Forms.CheckBox ShowVertces;
+        private System.Windows.Forms.CheckBox TrivialAlgorithm;
     }
 }

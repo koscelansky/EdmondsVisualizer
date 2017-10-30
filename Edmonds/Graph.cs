@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-public class Edge
+public class Edge : IComparable<Edge>
 {
     public Edge(int u, int v)
     {
@@ -34,6 +34,11 @@ public class Edge
         Debug.Assert(v == V || v == U);
 
         return v == V ? U : V;
+    }
+
+    public int CompareTo(Edge other)
+    {
+        return U == other.U ? V - other.V : U - other.U;
     }
 
     public static bool operator ==(Edge e, Edge f)
@@ -106,22 +111,6 @@ public class CompleteGraph
         return builder.ToString();
     }
 
-    public double SumOfWeights(IEnumerable<Edge> edges)
-    {
-        double result = 0.0;
-        foreach (Edge e in edges)
-        {
-            result += this[e];
-        }
-        return result;
-    }
-    /*
-    public double this[int u, int v]
-    {
-        get { return this[new Edge(u, v)]; }
-        set { this[new Edge(u, v)] = value; }
-    }
-    */
     public double this[Edge e]
     {
         get { return _weights[e.U][e.V]; }
