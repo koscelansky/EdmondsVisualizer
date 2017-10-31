@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 public abstract class AbstractMatching
@@ -8,31 +9,25 @@ public abstract class AbstractMatching
 
 public class TrivialMatching : AbstractMatching
 {
-    private CompleteGraph _Graph;
-    private Stack<Edge> _BestMatching = null;
+    private CompleteGraph _graph;
+    private Stack<Edge> _bestMatching = null;
     private double _bestValue = double.MaxValue;
 
     public TrivialMatching(CompleteGraph G)
     {
-        _Graph = G ?? throw new System.ArgumentNullException(nameof(G));
+        _graph = G ?? throw new System.ArgumentNullException(nameof(G));
     }
 
-    private void ComputeMatching(Stack<Edge> partialMatching, bool[] uncoveredVertices)
+    private void ComputeMatching(Stack<Edge> partialMatching, bool[] uncoveredVertices, double currentValue)
     {
-        if (uncoveredVertices.All(x => !x))
+        Debug.Assert(uncoveredVertices.All(x => !x));
+
+        if (partialMatching.Count == _graph.Order / 2)
         {
-            double result = 0.0;
-            foreach (Edge e in partialMatching)
-            {
-                result += _Graph[e];
-            }
-            
-            if (result < _bestValue)
-            {
-                _BestMatching = new Stack<Edge>(partialMatching);
-                _bestValue = result;
-                return;
-            }
+            _bestMatching = new Stack<Edge>(partialMatching);
+            _bestValue = currentValue;
+
+            return;
         }
 
         for (int i = 0; i < uncoveredVertices.Length; i++)
@@ -46,10 +41,16 @@ public class TrivialMatching : AbstractMatching
                     if (!uncoveredVertices[j])
                         continue;
 
-                    partialMatching.Push(new Edge(i, j));
+                    var edge = new Edge(i, j);
+
+                    var newValue = currentValue + _graph[edge];
+                    if (newValue > _bestValue)
+                        continue; // no room for improvement
+
+                    partialMatching.Push(edge);
 
                     uncoveredVertices[j] = false;
-                    ComputeMatching(partialMatching, uncoveredVertices);
+                    ComputeMatching(partialMatching, uncoveredVertices, newValue);
                     uncoveredVertices[j] = true;
 
                     partialMatching.Pop();
@@ -62,13 +63,11 @@ public class TrivialMatching : AbstractMatching
 
     public override IEnumerable<Edge> Matching()
     {
-        if (_Graph.Order % 2 != 0)
+        if (_graph.Order % 2 != 0)
             return null;
 
-        if (_BestMatching == null)
-        {
-            ComputeMatching(new Stack<Edge>(), Enumerable.Repeat(true, _Graph.Order).ToArray());
-        }
-        return _BestMatching;
+        ComputeMatching(new Stack<Edge>(), Enumerable.Repeat(true, _graph.Order).ToArray(), 0);
+
+        return _bestMatching;
     }
 }
