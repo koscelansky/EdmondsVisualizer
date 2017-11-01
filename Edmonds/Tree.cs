@@ -23,6 +23,22 @@ public class Node
         return $"T: {Thickness:F2} V: " + String.Join(" ", Vertices);
     }
 
+    public Node FindNode(int v)
+    {
+        if (ContainsVertex(v))
+            return this;
+
+        foreach (Node n in _children.Values)
+        {
+            var res = n.FindNode(v);
+
+            if (res != null)
+                return res;
+        }
+
+        return null;
+    }
+
     public void AddBarbell(Edge e, Barbell barbell)
     {
         int vertexInThis = Vertices.Contains(e.U) ? e.U : e.V;
@@ -302,26 +318,6 @@ public class Tree : AbstractTree
         _root._tree = this;
     }
 
-    public Node FindNode(int v)
-    {
-        if (!ContainsVertex(v))
-            return null;
-
-        Node node = _root;
-        while (!node.ContainsVertex(v))
-        {
-            foreach (Node n in node._children.Values)
-            {
-                if (n.ContainsVertexInSubtree(v))
-                {
-                    node = n;
-                    break;
-                }
-            }
-        }
-        return node;
-    }
-
     public HashSet<Edge> FindPath(int w, CompleteGraph partialMatching)
     {
         HashSet<Edge> result = new HashSet<Edge>();
@@ -538,6 +534,11 @@ public class Tree : AbstractTree
     }
 
     public override bool ContainsVertex(int v) => _root.ContainsVertexInSubtree(v);
+
+    public Node FindNode(int v)
+    {
+        return _root.FindNode(v);
+    }
 }
 
 public class Barbell : AbstractTree
