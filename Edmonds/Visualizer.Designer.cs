@@ -106,6 +106,11 @@
             0,
             0,
             0});
+            this.Pause.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.Pause.Name = "Pause";
             this.Pause.Size = new System.Drawing.Size(51, 22);
             this.Pause.TabIndex = 4;
