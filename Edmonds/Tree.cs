@@ -193,14 +193,7 @@ public class Node
 
 public abstract class AbstractTree
 {
-    public virtual bool ContainsVertex(int v) { return Vertices.Contains(v); }
-
-    public abstract HashSet<int> Vertices { get; }
-
-    public override string ToString()
-    {
-        return "V: " + String.Join(" ", Vertices);
-    }
+    public abstract bool ContainsVertex(int v);
 }
 
 public class Tree : AbstractTree
@@ -311,10 +304,8 @@ public class Tree : AbstractTree
 
     public Node FindNode(int v)
     {
-        if (!Vertices.Contains(v))
-        {
+        if (!ContainsVertex(v))
             return null;
-        }
 
         Node node = _root;
         while (!node.ContainsVertex(v))
@@ -365,10 +356,10 @@ public class Tree : AbstractTree
 
     public List<AbstractTree> Merge(Tree other, Edge e, CompleteGraph partialMatching, CompleteGraph fullEdges)
     {
-        int vertexInThis = Vertices.Contains(e.U) ? e.U : e.V;
+        int vertexInThis = ContainsVertex(e.U) ? e.U : e.V;
         int vertexInOther = e.OtherEnd(vertexInThis);
 
-        Debug.Assert(other.Vertices.Contains(vertexInOther));
+        Debug.Assert(other.ContainsVertex(vertexInOther));
         
         HashSet<Edge> alternatingPath = new HashSet<Edge>();
         // alternating path
@@ -546,8 +537,6 @@ public class Tree : AbstractTree
         return CriticalValueRecursive(_root, graph, actualLoad, fullEdges, forrest);
     }
 
-    public override HashSet<int> Vertices { get { return _root.VerticesInSubtree; } }
-
     public override bool ContainsVertex(int v) => _root.ContainsVertexInSubtree(v);
 }
 
@@ -560,16 +549,21 @@ public class Barbell : AbstractTree
         First = fst;
         Second = snd;
         Edge = e;
-
-        _vertices.UnionWith(First.Vertices);
-        _vertices.UnionWith(Second.Vertices);
     }
-
-    public override HashSet<int> Vertices { get { return _vertices; } }
 
     public Node First { get; }
 
     public Node Second { get; }
 
     public Edge Edge { get; }
+
+    public override string ToString()
+    {
+        return $"Barbell: ({ First }) ({ Edge }) ({ Second })";
+    }
+
+    public override bool ContainsVertex(int v)
+    {
+        return First.ContainsVertex(v) || Second.ContainsVertex(v);
+    }
 }
