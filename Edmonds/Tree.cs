@@ -397,12 +397,33 @@ public class Tree : AbstractTree
 
     public Node LCA(Node a, Node b)
     {
-        int v = b.Vertices.First();
-        Node result = a;
-        while (!result.ContainsVertexInSubtree(v))
+        Func<Node, List<Node>> findPathFromRoot = x =>
         {
-            result = result._parent;
+            var path = new List<Node>(a.Level);
+
+            while (x != _root)
+            {
+                path.Add(x);
+                x = x._parent;
+            }
+
+            path.Reverse();
+            return path;
+        };
+
+        var pathFromRootToA = findPathFromRoot(a);
+        var pathFromRootToB = findPathFromRoot(b);
+
+        Node result = _root;
+        int commonLength = Math.Min(pathFromRootToA.Count, pathFromRootToB.Count);
+        for (int i = 0; i < commonLength; ++i)
+        {
+            if (pathFromRootToA[i] != pathFromRootToB[i])
+                return result;
+
+            result = pathFromRootToA[i];
         }
+
         return result;
     }
 
