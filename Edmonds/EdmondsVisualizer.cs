@@ -11,33 +11,11 @@ public class EdmondsVisualizer
     private Image _buffer;
     private Graphics _graphics;
 
-    public EdmondsVisualizer(int width, int height, int n)
-    {
-        InitGraphics(width, height);
-        InitPoints(new Random(), n);
-        InitMatching();
-    }
-
     public EdmondsVisualizer(int width, int height, List<Point> points)
     {
         InitGraphics(width, height);
         Points = points;
         InitMatching();
-    }
-
-    public EdmondsVisualizer(int width, int height, int n, int seed)
-    {
-        InitGraphics(width, height);
-        InitPoints(new Random(seed), n);
-        InitMatching();
-    }
-
-    private void InitPoints(Random rnd, int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            Points.Add(new Point(rnd.Next(_buffer.Width), rnd.Next(_buffer.Height)));
-        }
     }
 
     private void InitGraphics(int width, int height)
@@ -175,7 +153,7 @@ public class EdmondsVisualizer
 
     public bool IsMatching { get { return _matching.Graph.IsMatching(_matching.Edges); } }
 
-    private List<Point> Points { get; } = new List<Point>();
+    private List<Point> Points { get; }
 
     private static Color PickColor(int level)
     {
