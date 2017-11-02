@@ -71,6 +71,23 @@ public class Node
         fst._children.Add(barbell.Edge, snd);
     }
 
+    public void AddCharge(double charge, CompleteGraph actualLoad)
+    {
+        if (Level % 2 == 0)
+        {
+            _blossom.Add(charge, actualLoad);
+        }
+        else
+        {
+            _blossom.Add(-charge, actualLoad);
+        }
+
+        foreach (Node n in _children.Values)
+        {
+            n.AddCharge(charge, actualLoad);
+        }
+    }
+
     public void UpdateLevel()
     {
         Level = _parent == null ? 0 : _parent.Level + 1;
@@ -254,23 +271,6 @@ public class Tree : AbstractTree
         }
 
         return result;
-    }
-
-    private void AddRecursive(Node root, double charge, CompleteGraph actualLoad)
-    {
-        foreach (Node n in root._children.Values)
-        {
-            AddRecursive(n, charge, actualLoad);
-        }
-
-        if ((root.Level % 2) == 0)
-        {
-            root._blossom.Add(charge, actualLoad);
-        }
-        else
-        {
-            root._blossom.Add(-charge, actualLoad);
-        }
     }
 
     private List<AbstractTree> ExtractBarbells(Node root, CompleteGraph partialMatching, CompleteGraph fullEdges)
@@ -511,7 +511,7 @@ public class Tree : AbstractTree
 
     public void Add(double charge, CompleteGraph actualLoad)
     {
-        AddRecursive(_root, charge, actualLoad);
+        _root.AddCharge(charge, actualLoad);
     }
 
     public Tuple<Node, double, Edge> FindCriticalValue(CompleteGraph graph, CompleteGraph actualLoad, CompleteGraph fullEdges, List<AbstractTree> forrest)
