@@ -20,10 +20,10 @@ public class TrivialMatching : AbstractMatching
 
     private void ComputeMatching(Stack<Edge> partialMatching, bool[] uncoveredVertices, double currentValue)
     {
-        Debug.Assert(uncoveredVertices.All(x => !x));
-
         if (partialMatching.Count == _graph.Order / 2)
         {
+            Debug.Assert(uncoveredVertices.All(x => !x));
+
             _bestMatching = new Stack<Edge>(partialMatching);
             _bestValue = currentValue;
 
