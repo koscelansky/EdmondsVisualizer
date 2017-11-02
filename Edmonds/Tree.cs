@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System;
-using System.Linq;
 using System.Diagnostics;
 
 public class Node
@@ -189,19 +188,6 @@ public class Node
         return false;
     }
 
-    public HashSet<int> VerticesInSubtree
-    {
-        get
-        {
-            HashSet<int> result = new HashSet<int>(Vertices);
-            foreach (Node n in _children.Values)
-            {
-                result.UnionWith(n.VerticesInSubtree);
-            }
-
-            return result;
-        }
-    }
     public double Thickness => _blossom.Thickness;
 
     public int Level { get; internal set; }
@@ -543,8 +529,6 @@ public class Tree : AbstractTree
 
 public class Barbell : AbstractTree
 {
-    private HashSet<int> _vertices = new HashSet<int>();
-
     public Barbell(Node fst, Node snd, Edge e)
     {
         First = fst;
