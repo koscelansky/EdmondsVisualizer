@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 public class Node
 {
@@ -101,41 +102,22 @@ public class Node
     public List<AbstractTree> Dissolve(CompleteGraph partialMatching, CompleteGraph actualLoad)
     {
         Node p = _parent;
-        Edge e = null;
-        foreach (var k in p._children)
-        {
-            if (k.Value == this)
-            {
-                e = k.Key;
-            }
-        }
+        Edge e = p._children.First(x => x.Value == this).Key;
+
         // vertex in this
-        int v = Vertices.Contains(e.V) ? e.V : e.U;
+        int v = ContainsVertex(e.V) ? e.V : e.U;
         // alternating path in blossom
         HashSet<Edge> path = _blossom.FindAlternatingPath(v, partialMatching);
-        CompositeBlossom b = (CompositeBlossom)_blossom;
-        int i;
-        for (i = 0; i < b.SubBlossoms.Count; i++)
-        {
-            if (b.SubBlossoms[i].Vertices.Contains(v))
-            {
-                break;
-            }
-        }
-        int dir;
-        if (path.Contains(b.Edges[i]))
-        {
-            dir = 1;
-        }
-        else
-        {
-            dir = -1;
-        }
-        bool finish = b.SubBlossoms[i].Vertices.Contains(b.Stem);
+        CompositeBlossom compositeBlossom = (CompositeBlossom)_blossom;
+        int i = compositeBlossom.SubBlossoms.FindIndex(x => x.ContainsVertex(v));
+
+        int dir = path.Contains(compositeBlossom.Edges[i]) ? 1 : -1;
+
+        bool finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
         // create new nodes in tree
         while (!finish)
         {
-            Node n = new Node(b.SubBlossoms[i]);
+            Node n = new Node(compositeBlossom.SubBlossoms[i]);
             p._children[e] = n;
             n._parent = p;
             n._tree = p._tree;
@@ -143,17 +125,17 @@ public class Node
             n._children = new Dictionary<Edge, Node>();
             if (dir == 1)
             {
-                e = b.Edges[i];
+                e = compositeBlossom.Edges[i];
             }
             else
             {
-                e = b.Edges[(i - 1) + ((i - 1) < 0 ? b.SubBlossoms.Count : 0)];
+                e = compositeBlossom.Edges[(i - 1) + ((i - 1) < 0 ? compositeBlossom.SubBlossoms.Count : 0)];
             }
-            i = ((i + dir) + ((i + dir) < 0 ? b.SubBlossoms.Count : 0)) % b.SubBlossoms.Count;
+            i = ((i + dir) + ((i + dir) < 0 ? compositeBlossom.SubBlossoms.Count : 0)) % compositeBlossom.SubBlossoms.Count;
             p = n;
-            finish = b.SubBlossoms[i].Vertices.Contains(b.Stem);
+            finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
         }
-        Node stipe_node = new Node(b.SubBlossoms[i]);
+        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i]);
         p._children[e] = stipe_node;
         stipe_node._parent = p;
         stipe_node.Level = p.Level + 1;
@@ -167,18 +149,18 @@ public class Node
         // updating level of each node
         stipe_node.UpdateLevel();
         List<AbstractTree> result = new List<AbstractTree>();
-        for (int k = 0; k < b.Edges.Count; k++)
+        for (int k = 0; k < compositeBlossom.Edges.Count; k++)
         {
-            Edge edge = b.Edges[k];
+            Edge edge = compositeBlossom.Edges[k];
             // edges in matching and not on alternating path are new barbells
             if ((partialMatching[edge] == 1) && (!path.Contains(edge)))
             {
-                result.Add(new Barbell(new Node(b.SubBlossoms[k]), new Node(b.SubBlossoms[(k + 1) % b.SubBlossoms.Count]), edge));
+                result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k]), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count]), edge));
             }
             // edge not in matching and not on alternating path are no longer full (in L)
             if (partialMatching[edge] == 0)
             {
-                if (!path.Contains(b.Edges[k]))
+                if (!path.Contains(compositeBlossom.Edges[k]))
                 {
                     actualLoad[edge] = 0;
                 }

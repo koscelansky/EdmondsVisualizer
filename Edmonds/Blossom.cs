@@ -7,7 +7,7 @@ public abstract class Blossom
 {
     public abstract void UpdateStem(CompleteGraph M);
 
-    public abstract HashSet<Edge> FindAlternatingPath(int v, CompleteGraph M);
+    public abstract HashSet<Edge> FindAlternatingPath(int v, CompleteGraph partialMatching);
 
     public void Add(double charge, CompleteGraph actualLoad)
     {
