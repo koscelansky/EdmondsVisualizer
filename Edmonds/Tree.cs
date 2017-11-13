@@ -5,17 +5,17 @@ using System.Linq;
 
 public class Node
 {
-    internal Node _parent;
+    private Node _parent;
     internal Tree _tree;
     internal Dictionary<Edge, Node> _children;
 
     public Node(Blossom blossom, Node parent)
     {
-        Blossom = blossom;
-        _parent = parent;
-        _tree = _parent?._tree;
-        Level = _parent?.Level + 1 ?? 0;
         _children = new Dictionary<Edge, Node>();
+
+        Blossom = blossom;
+        Parent = parent;
+        _tree = _parent?._tree;
     }
 
     public override string ToString()
@@ -41,14 +41,14 @@ public class Node
 
     public void AddBarbell(Edge e, Barbell barbell)
     {
-        int vertexInThis = Vertices.Contains(e.U) ? e.U : e.V;
+        int vertexInThis = ContainsVertex(e.U) ? e.U : e.V;
         int vertexInBarbell = e.OtherEnd(vertexInThis);
 
-        Debug.Assert(!Vertices.Contains(vertexInBarbell));
+        Debug.Assert(!ContainsVertex(vertexInBarbell));
 
         Node fst = barbell.First;
         Node snd = barbell.Second;
-        if (snd.Vertices.Contains(vertexInBarbell))
+        if (snd.ContainsVertex(vertexInBarbell))
         {
             Node temp = fst;
             fst = snd;
@@ -59,15 +59,13 @@ public class Node
 
         _children.Add(e, fst);
 
-        fst._parent = this;
-        fst.Level = Level + 1;
-        fst._tree = _tree;
         fst._children.Clear();
+        fst.Parent = this;
+        fst._tree = _tree;
 
-        snd.Level = fst.Level + 1;
-        snd._parent = fst;
-        snd._tree = _tree;
         snd._children.Clear();
+        snd.Parent = fst;
+        snd._tree = _tree;
 
         fst._children.Add(barbell.Edge, snd);
     }
@@ -89,9 +87,9 @@ public class Node
         }
     }
 
-    public void UpdateLevel()
+    private void UpdateLevel()
     {
-        Level = _parent == null ? 0 : _parent.Level + 1;
+        Level = _parent?.Level + 1 ?? 0;
 
         foreach (Node n in _children.Values)
         {
@@ -184,7 +182,17 @@ public class Node
 
     public double Thickness => Blossom.Thickness;
 
-    public int Level { get; internal set; }
+    public int Level { get; private set; }
+
+    public Node Parent
+    {
+        get { return _parent; }
+        set
+        {
+            _parent = value;
+            UpdateLevel();
+        }
+    }
 }
 
 public abstract class AbstractTree
@@ -276,8 +284,6 @@ public class Tree : AbstractTree
     public Tree(Node root)
     {
         _root = root;
-        _root.Level = 0;
-        _root._parent = null;
         _root._tree = this;
     }
 
@@ -354,7 +360,7 @@ public class Tree : AbstractTree
             while (x != _root)
             {
                 path.Add(x);
-                x = x._parent;
+                x = x.Parent;
             }
 
             path.Reverse();
@@ -430,7 +436,7 @@ public class Tree : AbstractTree
         while (!(cur == lca))
         {
             blossoms.Add(cur.Blossom);
-            Node p = cur._parent;
+            Node p = cur.Parent;
             foreach (var i in p._children)
             {
                 if (i.Value == cur)
@@ -455,12 +461,12 @@ public class Tree : AbstractTree
                 newChildren.Remove(i.Key);
             }
         }
-        Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M), lca._parent);
+        Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M), lca.Parent);
         
         // update parents
         foreach (Node n in newChildren.Values)
         {
-            n._parent = new_node;
+            n.Parent = new_node;
         }
         new_node._children = newChildren;
 
@@ -472,7 +478,7 @@ public class Tree : AbstractTree
         else
         {
             Edge x = null;
-            foreach (var i in new_node._parent._children)
+            foreach (var i in new_node.Parent._children)
             {
                 if (i.Value == lca)
                 {
@@ -480,10 +486,9 @@ public class Tree : AbstractTree
                     break;
                 }
             }
-            new_node._parent._children.Remove(x);
-            new_node._parent._children.Add(x, new_node);
+            new_node.Parent._children.Remove(x);
+            new_node.Parent._children.Add(x, new_node);
         }
-        _root.UpdateLevel();
     }
 
     public void Add(double charge, CompleteGraph actualLoad)
