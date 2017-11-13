@@ -10,11 +10,12 @@ public class Node
     internal Tree _tree;
     internal Dictionary<Edge, Node> _children;
 
-    public Node(Blossom blossom)
+    public Node(Blossom blossom, Node parent)
     {
         _blossom = blossom;
-        Level = 0;
-        _parent = null;
+        _parent = parent;
+        _tree = _parent?._tree;
+        Level = _parent?.Level + 1 ?? 0;
         _children = new Dictionary<Edge, Node>();
     }
 
@@ -101,11 +102,11 @@ public class Node
 
     public List<AbstractTree> Dissolve(CompleteGraph partialMatching, CompleteGraph actualLoad)
     {
-        Node p = _parent;
-        Edge e = p._children.First(x => x.Value == this).Key;
+        Node lastParent = _parent;
+        Edge lastEdge = lastParent._children.First(x => x.Value == this).Key;
 
         // vertex in this
-        int v = ContainsVertex(e.V) ? e.V : e.U;
+        int v = ContainsVertex(lastEdge.V) ? lastEdge.V : lastEdge.U;
         // alternating path in blossom
         HashSet<Edge> path = _blossom.FindAlternatingPath(v, partialMatching);
         CompositeBlossom compositeBlossom = (CompositeBlossom)_blossom;
@@ -117,31 +118,24 @@ public class Node
         // create new nodes in tree
         while (!finish)
         {
-            Node n = new Node(compositeBlossom.SubBlossoms[i]);
-            p._children[e] = n;
-            n._parent = p;
-            n._tree = p._tree;
-            n.Level = p.Level + 1;
-            n._children = new Dictionary<Edge, Node>();
+            Node n = new Node(compositeBlossom.SubBlossoms[i], lastParent);
+            lastParent._children[lastEdge] = n;
+
             if (dir == 1)
             {
-                e = compositeBlossom.Edges[i];
+                lastEdge = compositeBlossom.Edges[i];
             }
             else
             {
-                e = compositeBlossom.Edges[(i - 1) + ((i - 1) < 0 ? compositeBlossom.SubBlossoms.Count : 0)];
+                lastEdge = compositeBlossom.Edges[(i - 1) + ((i - 1) < 0 ? compositeBlossom.SubBlossoms.Count : 0)];
             }
             i = ((i + dir) + ((i + dir) < 0 ? compositeBlossom.SubBlossoms.Count : 0)) % compositeBlossom.SubBlossoms.Count;
-            p = n;
+            lastParent = n;
             finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
         }
-        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i]);
-        p._children[e] = stipe_node;
-        stipe_node._parent = p;
-        stipe_node.Level = p.Level + 1;
-        stipe_node._tree = p._tree;
-        stipe_node._children = new Dictionary<Edge, Node>();
-        stipe_node._children = this._children;
+        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i], lastParent);
+        lastParent._children[lastEdge] = stipe_node;
+        stipe_node._children = _children;
         foreach (Node n in stipe_node._children.Values)
         {
             n._parent = stipe_node;
@@ -155,7 +149,7 @@ public class Node
             // edges in matching and not on alternating path are new barbells
             if ((partialMatching[edge] == 1) && (!path.Contains(edge)))
             {
-                result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k]), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count]), edge));
+                result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k], null), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count], null), edge));
             }
             // edge not in matching and not on alternating path are no longer full (in L)
             if (partialMatching[edge] == 0)
@@ -460,19 +454,19 @@ public class Tree : AbstractTree
                 newChildren.Remove(i.Key);
             }
         }
-        Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M));
+        Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M), lca._parent);
+        
         // update parents
         foreach (Node n in newChildren.Values)
         {
             n._parent = new_node;
         }
         new_node._children = newChildren;
-        new_node._tree = lca._tree;
-        new_node._parent = lca._parent;
-        new_node.Level = lca.Level;
+
         if (lca == _root)
         {
             _root = new_node;
+            new_node._tree = this;
         }
         else
         {

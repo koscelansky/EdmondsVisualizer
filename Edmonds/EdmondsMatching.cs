@@ -25,7 +25,7 @@ public class EdmondsMatching : AbstractMatching
         _hungarianForest = new List<AbstractTree>();
         for (int i = 0; i < graph.Order; i++)
         {
-            _hungarianForest.Add(new Tree(new Node(new VertexBlossom(i, Graph))));
+            _hungarianForest.Add(new Tree(new Node(new VertexBlossom(i, Graph), null)));
         }
     }
 
