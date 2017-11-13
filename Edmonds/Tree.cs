@@ -5,14 +5,13 @@ using System.Linq;
 
 public class Node
 {
-    internal Blossom _blossom;
     internal Node _parent;
     internal Tree _tree;
     internal Dictionary<Edge, Node> _children;
 
     public Node(Blossom blossom, Node parent)
     {
-        _blossom = blossom;
+        Blossom = blossom;
         _parent = parent;
         _tree = _parent?._tree;
         Level = _parent?.Level + 1 ?? 0;
@@ -77,11 +76,11 @@ public class Node
     {
         if (Level % 2 == 0)
         {
-            _blossom.Add(charge, actualLoad);
+            Blossom.Add(charge, actualLoad);
         }
         else
         {
-            _blossom.Add(-charge, actualLoad);
+            Blossom.Add(-charge, actualLoad);
         }
 
         foreach (Node n in _children.Values)
@@ -108,8 +107,8 @@ public class Node
         // vertex in this
         int v = ContainsVertex(lastEdge.V) ? lastEdge.V : lastEdge.U;
         // alternating path in blossom
-        HashSet<Edge> path = _blossom.FindAlternatingPath(v, partialMatching);
-        CompositeBlossom compositeBlossom = (CompositeBlossom)_blossom;
+        HashSet<Edge> path = Blossom.FindAlternatingPath(v, partialMatching);
+        CompositeBlossom compositeBlossom = (CompositeBlossom)Blossom;
         int i = compositeBlossom.SubBlossoms.FindIndex(x => x.ContainsVertex(v));
 
         int dir = path.Contains(compositeBlossom.Edges[i]) ? 1 : -1;
@@ -163,9 +162,9 @@ public class Node
         return result;
     }
 
-    public bool ContainsVertex(int v) => _blossom.ContainsVertex(v);
+    public bool ContainsVertex(int v) => Blossom.ContainsVertex(v);
 
-    public HashSet<int> Vertices => _blossom.Vertices;
+    public HashSet<int> Vertices => Blossom.Vertices;
 
     public bool ContainsVertexInSubtree(int v)
     {
@@ -181,7 +180,9 @@ public class Node
         return false;
     }
 
-    public double Thickness => _blossom.Thickness;
+    public Blossom Blossom { get; private set; }
+
+    public double Thickness => Blossom.Thickness;
 
     public int Level { get; internal set; }
 }
@@ -201,7 +202,7 @@ public class Tree : AbstractTree
         if (root.Level % 2 == 1)
         {
             // we will be subtracting charge
-            if (root._blossom is VertexBlossom)
+            if (root.Blossom is VertexBlossom)
             {
                 result = new Tuple<Node, double, Edge>(root, double.MaxValue, null);
             }
@@ -213,7 +214,7 @@ public class Tree : AbstractTree
         else
         {
             // we will be adding charge
-            foreach (Edge e in root._blossom.Boundary)
+            foreach (Edge e in root.Blossom.Boundary)
             {
                 int other_end = root.Vertices.Contains(e.V) ? e.U : e.V;
                 AbstractTree other_tree = forrest.Find(tree => tree.ContainsVertex(other_end));
@@ -252,7 +253,7 @@ public class Tree : AbstractTree
     private List<AbstractTree> ExtractBarbells(Node root, CompleteGraph partialMatching, CompleteGraph fullEdges)
     {
         // if the tree is merged with other tree, it will break into barbells
-        root._blossom.UpdateStem(partialMatching);
+        root.Blossom.UpdateStem(partialMatching);
         List<AbstractTree> result = new List<AbstractTree>();
         foreach (Node n in root._children.Values)
         {
@@ -302,12 +303,12 @@ public class Tree : AbstractTree
             int vertexInNext = edge.OtherEnd(vertexInThis);
             
             // path inside blossoms
-            result.UnionWith(node._blossom.FindAlternatingPath(vertexInThis, partialMatching));
+            result.UnionWith(node.Blossom.FindAlternatingPath(vertexInThis, partialMatching));
             result.Add(edge);
-            result.UnionWith(nextNode._blossom.FindAlternatingPath(vertexInNext, partialMatching));
+            result.UnionWith(nextNode.Blossom.FindAlternatingPath(vertexInNext, partialMatching));
             node = nextNode;    
         }
-        result.UnionWith(node._blossom.FindAlternatingPath(w, partialMatching));
+        result.UnionWith(node.Blossom.FindAlternatingPath(w, partialMatching));
 
         return result;
     }
@@ -396,7 +397,7 @@ public class Tree : AbstractTree
         Dictionary<Edge, Node> newChildren = new Dictionary<Edge, Node>();
         while (!(cur == a))
         {
-            blossoms.Add(cur._blossom);
+            blossoms.Add(cur.Blossom);
             foreach (var i in cur._children)
             {
                 if (i.Value.ContainsVertexInSubtree(vertexInA))
@@ -417,7 +418,7 @@ public class Tree : AbstractTree
         }
 
         // edge from a to b
-        blossoms.Add(cur._blossom);
+        blossoms.Add(cur.Blossom);
         edges.Add(e);
         // children from b to new_c
         foreach (var i in b._children)
@@ -428,7 +429,7 @@ public class Tree : AbstractTree
         cur = b;
         while (!(cur == lca))
         {
-            blossoms.Add(cur._blossom);
+            blossoms.Add(cur.Blossom);
             Node p = cur._parent;
             foreach (var i in p._children)
             {

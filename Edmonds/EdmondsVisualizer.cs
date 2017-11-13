@@ -97,7 +97,7 @@ public class EdmondsVisualizer
         {
             DrawNode(v);
         }
-        DrawBlossom(n._blossom);
+        DrawBlossom(n.Blossom);
     }
 
     public IEnumerable<Edge> Edges => _matching.Edges;
