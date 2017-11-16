@@ -135,10 +135,9 @@ public class Node
         stipe_node._children = _children;
         foreach (Node n in stipe_node._children.Values)
         {
-            n._parent = stipe_node;
+            n.Parent = stipe_node;
         }
-        // updating level of each node
-        stipe_node.UpdateLevel();
+
         List<AbstractTree> result = new List<AbstractTree>();
         for (int k = 0; k < compositeBlossom.Edges.Count; k++)
         {
