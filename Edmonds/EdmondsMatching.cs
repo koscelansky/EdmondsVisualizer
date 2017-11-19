@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using MoreLinq;
 using System;
-using MoreLinq;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 public class EdmondsMatching : AbstractMatching
 {
