@@ -7,7 +7,7 @@ public class Node
 {
     private Node _parent;
     internal Tree _tree;
-    internal Dictionary<Edge, Node> _children;
+    private Dictionary<Edge, Node> _children;
 
     public Node(Blossom blossom, Node parent)
     {
@@ -159,6 +159,17 @@ public class Node
         return result;
     }
 
+    public void AddChild(Edge e, Node node)
+    {
+        _children[e] = node;
+        node.Parent = this;
+    }
+
+    public void RemoveChild(Edge e)
+    {
+        _children.Remove(e);
+    }
+
     public bool ContainsVertex(int v) => Blossom.ContainsVertex(v);
 
     public HashSet<int> Vertices => Blossom.Vertices;
@@ -182,6 +193,8 @@ public class Node
     public double Thickness => Blossom.Thickness;
 
     public int Level { get; private set; }
+
+    public IReadOnlyDictionary<Edge, Node> Children { get => _children; }
 
     public Node Parent
     {
@@ -245,7 +258,7 @@ public class Tree : AbstractTree
             }
         }
 
-        foreach (Node n in root._children.Values)
+        foreach (Node n in root.Children.Values)
         {
             Tuple<Node, double, Edge> temp = CriticalValueRecursive(n, graph, actualLoad, fullEdges, forrest);
             if (result.Item2 > temp.Item2)
@@ -262,11 +275,11 @@ public class Tree : AbstractTree
         // if the tree is merged with other tree, it will break into barbells
         root.Blossom.UpdateStem(partialMatching);
         List<AbstractTree> result = new List<AbstractTree>();
-        foreach (Node n in root._children.Values)
+        foreach (Node n in root.Children.Values)
         {
             result.AddRange(ExtractBarbells(n, partialMatching, fullEdges));
         }
-        foreach (var t in root._children)
+        foreach (var t in root.Children)
         {
             if (partialMatching[t.Key] == 1)
             {
@@ -295,7 +308,7 @@ public class Tree : AbstractTree
 
         while (!node.Vertices.Contains(w))
         {
-            foreach (var t in node._children)
+            foreach (var t in node.Children)
             {
                 if (t.Value.ContainsVertexInSubtree(w))
                 {
@@ -400,10 +413,10 @@ public class Tree : AbstractTree
         // path from lca to a
         Node cur = lca;
         Dictionary<Edge, Node> newChildren = new Dictionary<Edge, Node>();
-        while (!(cur == a))
+        while (cur != a)
         {
             blossoms.Add(cur.Blossom);
-            foreach (var i in cur._children)
+            foreach (var i in cur.Children)
             {
                 if (i.Value.ContainsVertexInSubtree(vertexInA))
                 {
@@ -416,8 +429,9 @@ public class Tree : AbstractTree
                 }
             }
         }
+
         // children from a to new children
-        foreach (var i in a._children)
+        foreach (var i in a.Children)
         {
             newChildren.Add(i.Key, i.Value);
         }
@@ -425,18 +439,20 @@ public class Tree : AbstractTree
         // edge from a to b
         blossoms.Add(cur.Blossom);
         edges.Add(e);
-        // children from b to new_c
-        foreach (var i in b._children)
+
+        // children from b to newChildren
+        foreach (var i in b.Children)
         {
             newChildren.Add(i.Key, i.Value);
         }
+
         // path from b to lca
         cur = b;
-        while (!(cur == lca))
+        while (cur != lca)
         {
             blossoms.Add(cur.Blossom);
             Node p = cur.Parent;
-            foreach (var i in p._children)
+            foreach (var i in p.Children)
             {
                 if (i.Value == cur)
                 {
@@ -453,7 +469,7 @@ public class Tree : AbstractTree
             cur = p;
         }
         // remove children from lca to a/b
-        foreach (var i in lca._children)
+        foreach (var i in lca.Children)
         {
             if (i.Value.ContainsVertexInSubtree(vertexInA) || i.Value.ContainsVertexInSubtree(vertexInB))
             {
@@ -463,11 +479,10 @@ public class Tree : AbstractTree
         Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M), lca.Parent);
         
         // update parents
-        foreach (Node n in newChildren.Values)
+        foreach (var i in newChildren)
         {
-            n.Parent = new_node;
+            new_node.AddChild(i.Key, i.Value);
         }
-        new_node._children = newChildren;
 
         if (lca == _root)
         {
@@ -477,7 +492,7 @@ public class Tree : AbstractTree
         else
         {
             Edge x = null;
-            foreach (var i in new_node.Parent._children)
+            foreach (var i in new_node.Parent.Children)
             {
                 if (i.Value == lca)
                 {
@@ -485,8 +500,8 @@ public class Tree : AbstractTree
                     break;
                 }
             }
-            new_node.Parent._children.Remove(x);
-            new_node.Parent._children.Add(x, new_node);
+            new_node.Parent.RemoveChild(x);
+            new_node.Parent.AddChild(x, new_node);
         }
     }
 

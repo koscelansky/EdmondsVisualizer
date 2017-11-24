@@ -93,7 +93,7 @@ public class EdmondsVisualizer
 
     private void DrawNode(Node n)
     {
-        foreach (var v in n._children.Values)
+        foreach (var v in n.Children.Values)
         {
             DrawNode(v);
         }
