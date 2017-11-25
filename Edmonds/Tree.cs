@@ -7,15 +7,11 @@ public class Node
 {
     private Node _parent;
     internal Tree _tree;
-    private Dictionary<Edge, Node> _children;
+    private Dictionary<Edge, Node> _children = new Dictionary<Edge, Node>();
 
-    public Node(Blossom blossom, Node parent)
+    public Node(Blossom blossom)
     {
-        _children = new Dictionary<Edge, Node>();
-
         Blossom = blossom;
-        Parent = parent;
-        _tree = _parent?._tree;
     }
 
     public override string ToString()
@@ -54,20 +50,14 @@ public class Node
             fst = snd;
             snd = temp;
         }
-        
+
         // from now on vertexInBarbell is in fst
 
-        _children.Add(e, fst);
-
         fst._children.Clear();
-        fst.Parent = this;
-        fst._tree = _tree;
+        AddChild(e, fst);
 
         snd._children.Clear();
-        snd.Parent = fst;
-        snd._tree = _tree;
-
-        fst._children.Add(barbell.Edge, snd);
+        fst.AddChild(barbell.Edge, snd);
     }
 
     public void AddCharge(double charge, CompleteGraph actualLoad)
@@ -115,8 +105,8 @@ public class Node
         // create new nodes in tree
         while (!finish)
         {
-            Node n = new Node(compositeBlossom.SubBlossoms[i], lastParent);
-            lastParent._children[lastEdge] = n;
+            Node n = new Node(compositeBlossom.SubBlossoms[i]);
+            lastParent.AddChild(lastEdge, n);
 
             if (dir == 1)
             {
@@ -130,8 +120,8 @@ public class Node
             lastParent = n;
             finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
         }
-        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i], lastParent);
-        lastParent._children[lastEdge] = stipe_node;
+        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i]);
+        lastParent.AddChild(lastEdge, stipe_node);
         stipe_node._children = _children;
         foreach (Node n in stipe_node._children.Values)
         {
@@ -145,7 +135,7 @@ public class Node
             // edges in matching and not on alternating path are new barbells
             if ((partialMatching[edge] == 1) && (!path.Contains(edge)))
             {
-                result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k], null), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count], null), edge));
+                result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k]), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count]), edge));
             }
             // edge not in matching and not on alternating path are no longer full (in L)
             if (partialMatching[edge] == 0)
@@ -202,6 +192,7 @@ public class Node
         set
         {
             _parent = value;
+            _tree = _parent?._tree;
             UpdateLevel();
         }
     }
@@ -476,23 +467,17 @@ public class Tree : AbstractTree
                 newChildren.Remove(i.Key);
             }
         }
-        Node new_node = new Node(new CompositeBlossom(blossoms, edges, G, M), lca.Parent);
-        
-        // update parents
-        foreach (var i in newChildren)
-        {
-            new_node.AddChild(i.Key, i.Value);
-        }
+        Node newNode = new Node(new CompositeBlossom(blossoms, edges, G, M));
 
         if (lca == _root)
         {
-            _root = new_node;
-            new_node._tree = this;
+            _root = newNode;
+            newNode._tree = this;
         }
         else
         {
             Edge x = null;
-            foreach (var i in new_node.Parent.Children)
+            foreach (var i in lca.Parent.Children)
             {
                 if (i.Value == lca)
                 {
@@ -500,8 +485,14 @@ public class Tree : AbstractTree
                     break;
                 }
             }
-            new_node.Parent.RemoveChild(x);
-            new_node.Parent.AddChild(x, new_node);
+            lca.Parent.RemoveChild(x);
+            lca.Parent.AddChild(x, newNode);
+        }
+
+        // update parents
+        foreach (var i in newChildren)
+        {
+            newNode.AddChild(i.Key, i.Value);
         }
     }
 
