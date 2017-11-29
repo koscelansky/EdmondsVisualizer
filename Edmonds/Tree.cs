@@ -215,7 +215,7 @@ public class Tree : AbstractTree
             // we will be subtracting charge
             if (root.Blossom is VertexBlossom)
             {
-                result = new Tuple<Node, double, Edge>(root, double.MaxValue, null);
+                result = new Tuple<Node, double, Edge>(root, Double.MaxValue, null);
             }
             else
             {
@@ -227,23 +227,23 @@ public class Tree : AbstractTree
             // we will be adding charge
             foreach (Edge e in root.Blossom.Boundary)
             {
-                int other_end = root.Vertices.Contains(e.V) ? e.U : e.V;
-                AbstractTree other_tree = forrest.Find(tree => tree.ContainsVertex(other_end));
+                int otherEnd = root.Vertices.Contains(e.V) ? e.U : e.V;
+                AbstractTree otherTree = forrest.Find(tree => tree.ContainsVertex(otherEnd));
                 
                 if (fullEdges[e] == 0)
                 {
-                    double edge_cap = graph[e] - actualLoad[e];
-                    if (other_tree is Tree tree)
+                    double edgeCap = graph[e] - actualLoad[e];
+                    if (otherTree is Tree tree)
                     {
-                        if (tree.FindNode(other_end).Level % 2 == 1)
+                        if (tree.FindNode(otherEnd).Level % 2 == 1)
                             continue;
 
-                        edge_cap /= 2;
+                        edgeCap /= 2;
                     }
 
-                    if (result == null || result.Item2 > edge_cap)
+                    if (result == null || result.Item2 > edgeCap)
                     {
-                        result = new Tuple<Node, double, Edge>(root, edge_cap, e);
+                        result = new Tuple<Node, double, Edge>(root, edgeCap, e);
                     }
                 }
             }
