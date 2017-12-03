@@ -87,6 +87,33 @@ public class Node
         }
     }
 
+    public List<Edge> FindPath(int v, CompleteGraph partialMatching)
+    {
+        if (ContainsVertex(v))
+            return new List<Edge>(Blossom.FindAlternatingPath(v, partialMatching));
+
+        foreach (var i in Children)
+        {
+            List<Edge> path = i.Value.FindPath(v, partialMatching);
+            if (path != null)
+            {
+                Edge edge = i.Key;
+
+                int vertexInThis = ContainsVertex(edge.U) ? edge.U : edge.V;
+                int vertexInNext = edge.OtherEnd(vertexInThis);
+
+                // path inside blossoms
+                path.AddRange(Blossom.FindAlternatingPath(vertexInThis, partialMatching));
+                path.Add(edge);
+                path.AddRange(i.Value.Blossom.FindAlternatingPath(vertexInNext, partialMatching));
+                    
+                return path;
+            }
+        }
+
+        return null;
+    }
+
     public List<AbstractTree> Dissolve(CompleteGraph partialMatching, CompleteGraph actualLoad)
     {
         Node lastParent = _parent;
@@ -290,38 +317,6 @@ public class Tree : AbstractTree
         _root._tree = this;
     }
 
-    public HashSet<Edge> FindPath(int w, CompleteGraph partialMatching)
-    {
-        HashSet<Edge> result = new HashSet<Edge>();
-        Node node = _root;
-        Node nextNode = null;
-        Edge edge = null;
-
-        while (!node.Vertices.Contains(w))
-        {
-            foreach (var t in node.Children)
-            {
-                if (t.Value.ContainsVertexInSubtree(w))
-                {
-                    nextNode = t.Value;
-                    edge = t.Key;
-                    break;
-                }
-            }
-            int vertexInThis = node.ContainsVertex(edge.U) ? edge.U : edge.V;
-            int vertexInNext = edge.OtherEnd(vertexInThis);
-            
-            // path inside blossoms
-            result.UnionWith(node.Blossom.FindAlternatingPath(vertexInThis, partialMatching));
-            result.Add(edge);
-            result.UnionWith(nextNode.Blossom.FindAlternatingPath(vertexInNext, partialMatching));
-            node = nextNode;    
-        }
-        result.UnionWith(node.Blossom.FindAlternatingPath(w, partialMatching));
-
-        return result;
-    }
-
     public List<AbstractTree> Merge(Tree other, Edge e, CompleteGraph partialMatching, CompleteGraph fullEdges)
     {
         int vertexInThis = ContainsVertex(e.U) ? e.U : e.V;
@@ -331,8 +326,8 @@ public class Tree : AbstractTree
         
         HashSet<Edge> alternatingPath = new HashSet<Edge>();
         // alternating path
-        alternatingPath.UnionWith(FindPath(vertexInThis, partialMatching));
-        alternatingPath.UnionWith(other.FindPath(vertexInOther, partialMatching));
+        alternatingPath.UnionWith(_root.FindPath(vertexInThis, partialMatching));
+        alternatingPath.UnionWith(other._root.FindPath(vertexInOther, partialMatching));
         alternatingPath.Add(e);
         // flip the alternating path
         foreach (Edge edge in alternatingPath)
