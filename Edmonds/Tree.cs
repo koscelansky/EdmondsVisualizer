@@ -24,7 +24,7 @@ public class Node
         if (ContainsVertex(v))
             return this;
 
-        foreach (Node n in _children.Values)
+        foreach (Node n in Children.Values)
         {
             var res = n.FindNode(v);
 
@@ -64,7 +64,7 @@ public class Node
     {
         Blossom.Add(Level % 2 == 0 ? charge : -charge, actualLoad);
 
-        foreach (Node n in _children.Values)
+        foreach (Node n in Children.Values)
         {
             n.AddCharge(charge, actualLoad);
         }
@@ -74,7 +74,7 @@ public class Node
     {
         Level = _parent?.Level + 1 ?? 0;
 
-        foreach (Node n in _children.Values)
+        foreach (Node n in Children.Values)
         {
             n.UpdateLevel();
         }
@@ -110,42 +110,42 @@ public class Node
     public List<AbstractTree> Dissolve(CompleteGraph partialMatching, CompleteGraph actualLoad)
     {
         Node lastParent = _parent;
-        Edge lastEdge = lastParent._children.First(x => x.Value == this).Key;
+        Edge lastEdge = lastParent.Children.First(x => x.Value == this).Key;
 
         // vertex in this
         int v = ContainsVertex(lastEdge.V) ? lastEdge.V : lastEdge.U;
         // alternating path in blossom
         HashSet<Edge> path = Blossom.FindAlternatingPath(v, partialMatching);
         CompositeBlossom compositeBlossom = (CompositeBlossom)Blossom;
-        int i = compositeBlossom.SubBlossoms.FindIndex(x => x.ContainsVertex(v));
+        int index = compositeBlossom.SubBlossoms.FindIndex(x => x.ContainsVertex(v));
 
-        int dir = path.Contains(compositeBlossom.Edges[i]) ? 1 : -1;
+        int dir = path.Contains(compositeBlossom.Edges[index]) ? 1 : -1;
 
-        bool finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
+        bool finish = compositeBlossom.SubBlossoms[index].ContainsVertex(compositeBlossom.Stem);
         // create new nodes in tree
         while (!finish)
         {
-            Node n = new Node(compositeBlossom.SubBlossoms[i]);
+            Node n = new Node(compositeBlossom.SubBlossoms[index]);
             lastParent.AddChild(lastEdge, n);
 
             if (dir == 1)
             {
-                lastEdge = compositeBlossom.Edges[i];
+                lastEdge = compositeBlossom.Edges[index];
             }
             else
             {
-                lastEdge = compositeBlossom.Edges[(i - 1) + ((i - 1) < 0 ? compositeBlossom.SubBlossoms.Count : 0)];
+                lastEdge = compositeBlossom.Edges[(index - 1) + ((index - 1) < 0 ? compositeBlossom.SubBlossoms.Count : 0)];
             }
-            i = ((i + dir) + ((i + dir) < 0 ? compositeBlossom.SubBlossoms.Count : 0)) % compositeBlossom.SubBlossoms.Count;
+            index = ((index + dir) + ((index + dir) < 0 ? compositeBlossom.SubBlossoms.Count : 0)) % compositeBlossom.SubBlossoms.Count;
             lastParent = n;
-            finish = compositeBlossom.SubBlossoms[i].ContainsVertex(compositeBlossom.Stem);
+            finish = compositeBlossom.SubBlossoms[index].ContainsVertex(compositeBlossom.Stem);
         }
-        Node stipe_node = new Node(compositeBlossom.SubBlossoms[i]);
-        lastParent.AddChild(lastEdge, stipe_node);
-        stipe_node._children = _children;
-        foreach (Node n in stipe_node._children.Values)
+        Node stipeNode = new Node(compositeBlossom.SubBlossoms[index]);
+        lastParent.AddChild(lastEdge, stipeNode);
+
+        foreach (var i in Children)
         {
-            n.Parent = stipe_node;
+            stipeNode.AddChild(i.Key, i.Value);
         }
 
         List<AbstractTree> result = new List<AbstractTree>();
@@ -157,10 +157,11 @@ public class Node
             {
                 result.Add(new Barbell(new Node(compositeBlossom.SubBlossoms[k]), new Node(compositeBlossom.SubBlossoms[(k + 1) % compositeBlossom.SubBlossoms.Count]), edge));
             }
+
             // edge not in matching and not on alternating path are no longer full (in L)
             if (partialMatching[edge] == 0)
             {
-                if (!path.Contains(compositeBlossom.Edges[k]))
+                if (!path.Contains(edge))
                 {
                     actualLoad[edge] = 0;
                 }
@@ -189,7 +190,7 @@ public class Node
         if (ContainsVertex(v))
             return true;
 
-        foreach (Node i in _children.Values)
+        foreach (Node i in Children.Values)
         {
             if (i.ContainsVertexInSubtree(v))
                 return true;
