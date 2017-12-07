@@ -198,6 +198,31 @@ public class Node
         return false;
     }
 
+    public static Node LCA(Node a, Node b)
+    {
+        if (a.Level > b.Level)
+        {
+            var temp = a;
+            a = b;
+            b = temp;
+        }
+
+        Debug.Assert(a.Level <= b.Level);
+
+        while (a.Level < b.Level)
+        {
+            b = b.Parent;
+        }
+
+        while (a != b)
+        {
+            a = a.Parent;
+            b = b.Parent;
+        }
+
+        return a;
+    }
+
     public Blossom Blossom { get; private set; }
 
     public double Thickness => Blossom.Thickness;
@@ -342,38 +367,6 @@ public class Tree : AbstractTree
         get { return _root; }
     }
 
-    public Node LCA(Node a, Node b)
-    {
-        Func<Node, List<Node>> findPathFromRoot = x =>
-        {
-            var path = new List<Node>(a.Level);
-
-            while (x != _root)
-            {
-                path.Add(x);
-                x = x.Parent;
-            }
-
-            path.Reverse();
-            return path;
-        };
-
-        var pathFromRootToA = findPathFromRoot(a);
-        var pathFromRootToB = findPathFromRoot(b);
-
-        Node result = _root;
-        int commonLength = Math.Min(pathFromRootToA.Count, pathFromRootToB.Count);
-        for (int i = 0; i < commonLength; ++i)
-        {
-            if (pathFromRootToA[i] != pathFromRootToB[i])
-                return result;
-
-            result = pathFromRootToA[i];
-        }
-
-        return result;
-    }
-
     public void NewBlossom(Node a, Node b, Edge e, CompleteGraph G, CompleteGraph M)
     {
         // e is edge between a and b
@@ -385,7 +378,7 @@ public class Tree : AbstractTree
         List<Blossom> blossoms = new List<Blossom>();
         List<Edge> edges = new List<Edge>();
 
-        Node lca = LCA(a, b);
+        Node lca = Node.LCA(a, b);
         Debug.Assert(lca.ContainsVertexInSubtree(vertexInA));
         Debug.Assert(lca.ContainsVertexInSubtree(vertexInB));
 
