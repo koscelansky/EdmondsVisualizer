@@ -62,14 +62,7 @@ public class Node
 
     public void AddCharge(double charge, CompleteGraph actualLoad)
     {
-        if (Level % 2 == 0)
-        {
-            Blossom.Add(charge, actualLoad);
-        }
-        else
-        {
-            Blossom.Add(-charge, actualLoad);
-        }
+        Blossom.Add(Level % 2 == 0 ? charge : -charge, actualLoad);
 
         foreach (Node n in _children.Values)
         {
@@ -176,15 +169,15 @@ public class Node
         return result;
     }
 
-    public void AddChild(Edge e, Node node)
+    public void AddChild(Edge edge, Node node)
     {
-        _children[e] = node;
+        _children[edge] = node;
         node.Parent = this;
     }
 
-    public void RemoveChild(Edge e)
+    public void RemoveChild(Edge edge)
     {
-        _children.Remove(e);
+        _children.Remove(edge);
     }
 
     public bool ContainsVertex(int v) => Blossom.ContainsVertex(v);
